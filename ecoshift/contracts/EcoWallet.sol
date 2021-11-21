@@ -9,24 +9,26 @@ import "./APIConsumer.sol";
  */
 
 contract EcoWallet is ERC721, Ownable {
-    uint256 public tokenCounter;
+    uint256 public tokenCounter; // Keeps track of the number of tokens (NFTs) that have been minted
 
     // TODO: Get charities from https://bafkreia6cfsedzwyk2aclxzn47zssiexwfqjaz3fq7maivizp7xmlmdonm.ipfs.dweb.link/
     //address[] public charities;
     // TODO: seperate community fund contract that determines splits between each charity which is based on community vote
-    // TODO: chairites doesnt compile when it is payable
-    address payable[] public charities = [
-        0x2c7e2252061A1DBEa274501Dc4c901E3fF80ef8B,
-        0x76A28E228ee922DB91cE0952197Dc9029Aa44e65,
-        0x55B86Ea5ff4bb1E674BCbBe098322C7dD3f294BE,
-        0xC157f383DC5Fc9301CDB2FEb958Ba394EF79f6e5,
-        0x77fEb8B21ffe0D279791Af78eb07Ce452cf1a51A
-    ];
+    // TODO: ability to create a contract and fund it and give ownership to another person
+    //address payable[] public charities2 = [
+    //    0x2c7e2252061A1DBEa274501Dc4c901E3fF80ef8B
+    //];
+
+    address[] public charities; // charities that will be paid if money isn't sent to a whitelist address
+
+    // TODO: Make a token class with holds the address, balance, and 'goodness' value
 
     mapping(uint8 => string) public tierToWalletURI;
     mapping(uint8 => uint8) public tierToCommunityFundShare;
     mapping(uint256 => address) private tokenIdToAddress; //address of owner of the token ID. TODO: If someone can give their token to someone else should  we be tracking this?
     mapping(uint256 => uint256) private tokenIdToBalance;
+    mapping(uint256 => uint256) private tokenIdToCommunityValue;
+    mapping(address => bool) public whitelist; //mapping of whitelist addresses, lists arent good because large lists use lots of gas to run through
 
     constructor(
         address _oracle,
@@ -34,8 +36,6 @@ contract EcoWallet is ERC721, Ownable {
         uint256 _fee,
         address _link
     ) ERC721("EcoWallet", "ECO") {
-        //int[5] memory data
-        //= [int(50), -63, 77, -28, 90];
         tokenCounter = 0;
         // set tier URIs
         tierToWalletURI[1] = "URI1"; // .01 ETH
@@ -45,11 +45,25 @@ contract EcoWallet is ERC721, Ownable {
         tierToWalletURI[5] = "URI5"; //  5  ETH
 
         // set tier community amounts
-        tierToCommunityFundShare[1] = 20; // .01 ETH
-        tierToCommunityFundShare[2] = 15; // .1  ETH
-        tierToCommunityFundShare[3] = 10; // .5  ETH
-        tierToCommunityFundShare[4] = 5; //  1  ETH
-        tierToCommunityFundShare[5] = 1; //  5  ETH
+        tierToCommunityFundShare[1] = 5; // 5%
+        tierToCommunityFundShare[2] = 4; // 4%
+        tierToCommunityFundShare[3] = 3; // 3%
+        tierToCommunityFundShare[4] = 2; // 2%
+        tierToCommunityFundShare[5] = 1; // 1%
+
+        charities = [
+            0x2c7e2252061A1DBEa274501Dc4c901E3fF80ef8B,
+            0x76A28E228ee922DB91cE0952197Dc9029Aa44e65,
+            0x55B86Ea5ff4bb1E674BCbBe098322C7dD3f294BE,
+            0xC157f383DC5Fc9301CDB2FEb958Ba394EF79f6e5,
+            0x77fEb8B21ffe0D279791Af78eb07Ce452cf1a51A
+        ];
+
+        // Example of making an array
+        //address[2] memory aa = [
+        //    0x77fEb8B21ffe0D279791Af78eb07Ce452cf1a51A,
+        //    0x77fEb8B21ffe0D279791Af78eb07Ce452cf1a51A
+        //];
     }
 
     function tokenURI(uint256 tokenId)
@@ -74,16 +88,17 @@ contract EcoWallet is ERC721, Ownable {
         // determine the tiers
         // 1 ETH = 1000000000000000000 wei
         uint8 tier;
-        if (tokenIdToBalance[tokenId] < 10000000000000000) {
+        if (tokenIdToCommunityValue[tokenId] < 1) {
             tier = 1;
-        } else if (tokenIdToBalance[tokenId] < 100000000000000000) {
+        } else if (tokenIdToCommunityValue[tokenId] < 5) {
             tier = 2;
-        } else if (tokenIdToBalance[tokenId] < 500000000000000000) {
+        } else if (tokenIdToCommunityValue[tokenId] < 10) {
             tier = 3;
-        } else if (tokenIdToBalance[tokenId] < 1000000000000000000) {
+        } else if (tokenIdToCommunityValue[tokenId] < 20) {
             tier = 4;
-        } else if (tokenIdToBalance[tokenId] < 5000000000000000000) {
+        } else if (tokenIdToCommunityValue[tokenId] < 50) {
             tier = 5;
+            // TODO: If in tier 5 then you should get added to the whitelist, how do we ge the address and which address should we be adding
         }
         return tier;
     }
@@ -119,8 +134,22 @@ contract EcoWallet is ERC721, Ownable {
             "EcoWallet: Insufficient funds."
         );
 
+        // check if address is in the whitelist
+        bool whitelistAddress = inWhitelist(recipient);
+        if (whitelistAddress) {
+            recipient.transfer(msg.value);
+            tokenIdToCommunityValue[tokenId] += 1;
+            return;
+        }
+
+        // TODO: if sending to another ecowallet then don't charge (use tokenIDto Addrress mapping, which should also be used for withdrawals)
+
+        // as not sending to a whitelist address or to another ecowallet then take away from goodness
+        tokenIdToCommunityValue[tokenId] -= 1;
+
         // calculate costs based on tier
         uint8 tier = getTier(tokenId);
+        // TODO: Use SafeMath when dealing with money
         uint256 community_share = tierToCommunityFundShare[tier];
         uint256 recipient_amount = msg.value * (100 / community_share);
         uint256 community_amount = msg.value * (100 / community_share);
@@ -130,8 +159,13 @@ contract EcoWallet is ERC721, Ownable {
 
         // transfer money to charities
         for (uint256 i = 0; i < charities.length; i++) {
-            charities[i].transfer(community_amount / charities.length);
+            // TODO: Casting to payable below but this could be done during array initilization
+            payable(charities[i]).transfer(community_amount / charities.length);
         }
+    }
+
+    function inWhitelist(address _add) public returns (bool) {
+        return whitelist[_add];
     }
 
     function setTokenURI(uint256 tokenId, string memory _tokenURI) public {
