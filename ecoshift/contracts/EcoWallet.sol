@@ -55,6 +55,10 @@ contract EcoWallet is ERC721, Ownable {
             0xC157f383DC5Fc9301CDB2FEb958Ba394EF79f6e5,
             0x77fEb8B21ffe0D279791Af78eb07Ce452cf1a51A
         ];
+
+        for (uint256 i = 0; i < charities.length; i++) {
+            whitelist[ charities[i] ] = true;
+        }
     }
 
     function tokenURI(uint256 tokenId)
@@ -163,7 +167,6 @@ contract EcoWallet is ERC721, Ownable {
         uint256 community_amount = (msg.value * community_share) / 100;
         uint256 recipient_amount = msg.value - community_amount; 
 
-        // transfer money to recipient
         recipient.transfer(recipient_amount);
 
         // transfer money to charities
@@ -175,7 +178,12 @@ contract EcoWallet is ERC721, Ownable {
         }
     }
 
-    function inWhitelist(address _add) public returns (bool) {
+    function inWhitelist(address _add) public view returns (bool) {
         return whitelist[_add];
+    }
+
+    // TODO: mechanism for community to decide whitelist 
+    function addToWhitelist(address _add) public onlyOwner {
+        whitelist[_add] = true; 
     }
 }
