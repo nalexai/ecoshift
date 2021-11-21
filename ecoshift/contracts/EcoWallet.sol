@@ -105,6 +105,17 @@ contract EcoWallet is ERC721, Ownable {
         tokenIdToBalance[tokenId] += msg.value;
     }
 
+    // getter for wallet balance. Only for owner or approved 
+    function getBalance(uint256 tokenId) public view returns (uint256) {
+        require( _exists(tokenId) );
+        require(
+            _isApprovedOrOwner(msg.sender, tokenId),
+            "ERC721: You are not approved or the owner."
+        );
+        return tokenIdToBalance[tokenId]; 
+    }
+
+
     // Withdraw funds from an EcoWallet. 
     // This should only be to the owner of the NFT and shouldn't have any charges
     function withdraw(uint256 tokenId, uint256 amount) public payable {
