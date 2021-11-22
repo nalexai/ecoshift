@@ -23,6 +23,14 @@ networks:
     jobId: '29fa9aa13bf1468788b7cc4a500a45b8'
     verify: False
     update_interval: 30
+    cmd_settings:
+      unlock: #charity addresses for testing
+        - 0x2c7e2252061A1DBEa274501Dc4c901E3fF80ef8B
+        - 0x76A28E228ee922DB91cE0952197Dc9029Aa44e65
+        - 0x55B86Ea5ff4bb1E674BCbBe098322C7dD3f294BE
+        - 0xC157f383DC5Fc9301CDB2FEb958Ba394EF79f6e5
+        - 0x77fEb8B21ffe0D279791Af78eb07Ce452cf1a51A
+
   kovan:
     vrf_coordinator: '0xdD3782915140c8f3b190B5D67eAc6dc5760C46E9'
     link_token: '0xa36085F69e2889c224210F603D836748e7dC0088'
