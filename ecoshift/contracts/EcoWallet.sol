@@ -14,7 +14,7 @@ contract EcoWallet is ERC721, Ownable {
 
     // TODO: Get charities from https://bafkreia6cfsedzwyk2aclxzn47zssiexwfqjaz3fq7maivizp7xmlmdonm.ipfs.dweb.link/
     // TODO: make tokenId the hash of a human readable name, similar to ENS
-    // TODO: seperate community fund contract that determines splits between each charity which is based on community vote
+    // TODO: separate community fund contract that determines splits between each charity which is based on community vote
     // TODO: ability to create a contract and fund it and give ownership to another person
 
     address[] public charities; // charities that will be paid if money isn't sent to a whitelist address
@@ -35,11 +35,11 @@ contract EcoWallet is ERC721, Ownable {
     ) ERC721("EcoWallet", "ECO") {
         tokenCounter = 0;
         // set tier URIs
-        tierToWalletURI[1] = "URI1"; // .01 ETH
-        tierToWalletURI[2] = "URI2"; // .1  ETH
-        tierToWalletURI[3] = "URI3"; // .5  ETH
-        tierToWalletURI[4] = "URI4"; //  1  ETH
-        tierToWalletURI[5] = "URI5"; //  5  ETH
+        tierToWalletURI[1] = "https://ipfs.io/ipfs/bafkreiaxj7ah6nxnsx7wt5nweg4qrca36evopbaxaxbtcpugvle2git27q"; 
+        tierToWalletURI[2] = "https://ipfs.io/ipfs/bafkreigfk7xbomlnnfq4zssgnjsjwq6xsh42elmxmid7hjlhq42cjcy7fu"; 
+        tierToWalletURI[3] = "https://ipfs.io/ipfs/bafkreifgfttc6xkirlm7nnqg55ffvbq7uuuw5yb6s4mfruyakvzu46dx2y"; 
+        tierToWalletURI[4] = "https://ipfs.io/ipfs/bafkreibyqbka4t4hhpy7a4ogqfcuxzjlutk4uxsyl3fiyob6d6d63badlm"; 
+        tierToWalletURI[5] = "https://ipfs.io/ipfs/bafkreifnget24ood6n5lf4if5u7jvwiv2bj5kp545khrookv7eec7d7pbm"; 
 
         // set tier community amounts
         tierToCommunityFundShare[1] = 5; // 5%
@@ -81,7 +81,6 @@ contract EcoWallet is ERC721, Ownable {
         require(_exists(tokenId), "EcoWallet: tier query for nonexistent token");
 
         // determine the tiers
-        // 1 ETH = 1000000000000000000 wei
         uint8 tier;
         if (tokenIdToCommunityValue[tokenId] < 1) {
             tier = 1;
