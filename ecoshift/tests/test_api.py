@@ -26,7 +26,7 @@ def test_api_request_local(deploy_api_contract, chainlink_fee, get_data):
         2 * chainlink_fee,
         {"from": acct},
     )
-    txn_hash = api_contract.requestJsonAPI( {"from": acct} )
+    txn_hash = api_contract.requestData( {"from": acct} )
     requestId = txn_hash.events["ChainlinkRequested"]["id"]
 
     get_contract("oracle").fulfillOracleRequest(
@@ -36,12 +36,12 @@ def test_api_request_local(deploy_api_contract, chainlink_fee, get_data):
     )
 
     # read padded string response (32 bytes)
-    str_response = api_contract.resp_str().lstrip('\x00')
-    print(api_contract.resp_str())
-    assert str_response == "testing 123"
+    #str_response = api_contract.resp_str().lstrip('\x00')
+    #print(api_contract.resp_str())
+    #assert str_response == "testing 123"
 
-    # print(api_contract.volume())
-    # assert api_contract.volume() > 0
+    print(api_contract.volume())
+    assert api_contract.volume() == 0xfffffffffffffffff 
 
 def test_send_api_request_testnet(deploy_api_contract, chainlink_fee):
     if network.show_active() not in ["kovan", "rinkeby", "mainnet"]:
@@ -50,9 +50,7 @@ def test_send_api_request_testnet(deploy_api_contract, chainlink_fee):
     get_contract("link_token").transfer(
         api_contract.address, chainlink_fee * 2, {"from": get_account()}
     )
-    # Act
-    transaction = api_contract.requestVolumeData({"from": get_account()})
-    # Assert
+    transaction = api_contract.requestData({"from": get_account()})
     assert transaction is not None
     transaction.wait(2)
     time.sleep(35)
@@ -70,7 +68,7 @@ def get_job_id():
 
 @pytest.fixture
 def get_data():
-    return bytes("testing 123",'utf-8')
+    return "0xfffffffffffffffff"
 
 @pytest.fixture
 def chainlink_fee():

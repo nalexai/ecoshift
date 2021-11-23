@@ -4,8 +4,10 @@ from scripts.utils import fund_with_link, get_account
 from .deploy import deploy_api_consumer
 
 def main():
-    account = get_account()
+    if len(APIConsumer) == 0:
+        deploy_api_consumer()
     api_contract = APIConsumer[-1]
+    account = get_account()
 
     print(f"Requesting from {api_contract.address}")
     tx = fund_with_link(

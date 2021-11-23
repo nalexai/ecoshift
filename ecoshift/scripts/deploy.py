@@ -5,15 +5,14 @@ from scripts.utils import get_account, get_contract, JOB_IDS
 
 
 def deploy_api_consumer():
-    # jobId = config["networks"][network.show_active()]["jobId"]
+    jobId = config["networks"][network.show_active()]["jobId"]
 
     # jobId = JOB_IDS[network.show_active()]["GET"]["uint256"]
-    jobId = "d5270d1c311941d0b08bead21fea7747"
+    # jobId = "d5270d1c311941d0b08bead21fea7747"
     fee = config["networks"][network.show_active()]["fee"]
     account = get_account()
-    oracle = (
-        "0xc57B33452b4F7BB189bB5AfaE9cc4aBa1f7a4FD8"  # get_contract("oracle").address
-    )
+    oracle = get_contract("oracle").address
+        #"0xc57B33452b4F7BB189bB5AfaE9cc4aBa1f7a4FD8"  
     link_token = get_contract("link_token").address
     api_consumer = APIConsumer.deploy(
         oracle,
@@ -47,4 +46,5 @@ def deploy_ecowallet():
 
 
 def main():
-    deploy_ecowallet()
+    deploy_api_consumer()
+    #deploy_ecowallet()
