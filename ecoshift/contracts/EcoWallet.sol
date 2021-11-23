@@ -10,8 +10,6 @@ import "./APIConsumer.sol";
  */
 
 contract EcoWallet is ERC721, Ownable {
-    uint256 public tokenCounter; // Keeps track of the number of tokens (NFTs) that have been minted
-
     // TODO: Get charities from https://bafkreia6cfsedzwyk2aclxzn47zssiexwfqjaz3fq7maivizp7xmlmdonm.ipfs.dweb.link/
     // TODO: make tokenId the hash of a human readable name, similar to ENS
     // TODO: separate community fund contract that determines splits between each charity which is based on community vote
@@ -35,11 +33,21 @@ contract EcoWallet is ERC721, Ownable {
     ) ERC721("EcoWallet", "ECO") {
         tokenCounter = 0;
         // set tier URIs
-        tierToWalletURI[1] = "https://ipfs.io/ipfs/bafkreiaxj7ah6nxnsx7wt5nweg4qrca36evopbaxaxbtcpugvle2git27q"; 
-        tierToWalletURI[2] = "https://ipfs.io/ipfs/bafkreigfk7xbomlnnfq4zssgnjsjwq6xsh42elmxmid7hjlhq42cjcy7fu"; 
-        tierToWalletURI[3] = "https://ipfs.io/ipfs/bafkreifgfttc6xkirlm7nnqg55ffvbq7uuuw5yb6s4mfruyakvzu46dx2y"; 
-        tierToWalletURI[4] = "https://ipfs.io/ipfs/bafkreibyqbka4t4hhpy7a4ogqfcuxzjlutk4uxsyl3fiyob6d6d63badlm"; 
-        tierToWalletURI[5] = "https://ipfs.io/ipfs/bafkreifnget24ood6n5lf4if5u7jvwiv2bj5kp545khrookv7eec7d7pbm"; 
+        tierToWalletURI[
+            1
+        ] = "https://ipfs.io/ipfs/bafkreiaxj7ah6nxnsx7wt5nweg4qrca36evopbaxaxbtcpugvle2git27q";
+        tierToWalletURI[
+            2
+        ] = "https://ipfs.io/ipfs/bafkreigfk7xbomlnnfq4zssgnjsjwq6xsh42elmxmid7hjlhq42cjcy7fu";
+        tierToWalletURI[
+            3
+        ] = "https://ipfs.io/ipfs/bafkreifgfttc6xkirlm7nnqg55ffvbq7uuuw5yb6s4mfruyakvzu46dx2y";
+        tierToWalletURI[
+            4
+        ] = "https://ipfs.io/ipfs/bafkreibyqbka4t4hhpy7a4ogqfcuxzjlutk4uxsyl3fiyob6d6d63badlm";
+        tierToWalletURI[
+            5
+        ] = "https://ipfs.io/ipfs/bafkreifnget24ood6n5lf4if5u7jvwiv2bj5kp545khrookv7eec7d7pbm";
 
         // set tier community amounts
         tierToCommunityFundShare[1] = 5; // 5%
@@ -57,7 +65,7 @@ contract EcoWallet is ERC721, Ownable {
         ];
 
         for (uint256 i = 0; i < charities.length; i++) {
-            whitelist[ charities[i] ] = true;
+            whitelist[charities[i]] = true;
         }
     }
 
@@ -78,7 +86,10 @@ contract EcoWallet is ERC721, Ownable {
     // determines tier of ecowallet which determines their nft image and
     // charge costs
     function getTier(uint256 tokenId) public view returns (uint8) {
-        require(_exists(tokenId), "EcoWallet: tier query for nonexistent token");
+        require(
+            _exists(tokenId),
+            "EcoWallet: tier query for nonexistent token"
+        );
 
         // determine the tiers
         uint8 tier;
@@ -96,48 +107,49 @@ contract EcoWallet is ERC721, Ownable {
         return tier;
     }
 
-    function createWallet() public {
-        _safeMint(msg.sender, tokenCounter);
-        tokenIdToBalance[tokenCounter] = 0;
-        tokenCounter = tokenCounter + 1;
+    function createWallet(bytes32 tokenIdNameHash) public {
+        // check if token already exists
+        require(!_exists(tokenIdNameHash), "ERC721: Token ID already exists.");
+
+        _safeMint(msg.sender, tokenIdNameHash);
+        tokenIdToBalance[tokenIdNameHash] = 0;
     }
 
     // fund an EcoWallet
-    function fund(uint256 tokenId) public payable {
-        require( _exists(tokenId) );
-        tokenIdToBalance[tokenId] += msg.value;
+    function fund(bytes32 tokenIdNameHash) public payable {
+        require(_exists(tokenIdNameHash));
+        tokenIdToBalance[toketokenIdNameHashnId] += msg.value;
     }
 
-    // getter for wallet balance. Only for owner or approved 
-    function getBalance(uint256 tokenId) public view returns (uint256) {
-        require( _exists(tokenId) );
+    // getter for wallet balance. Only for owner or approved
+    function getBalance(bytes32 tokenIdNameHash) public view returns (uint256) {
+        require(_exists(tokenIdNameHash));
         require(
-            _isApprovedOrOwner(msg.sender, tokenId),
+            _isApprovedOrOwner(msg.sender, tokenIdNameHash),
             "ERC721: You are not approved or the owner."
         );
-        return tokenIdToBalance[tokenId]; 
+        return tokenIdToBalance[tokenIdNameHash];
     }
 
-
-    // Withdraw funds from an EcoWallet. 
+    // Withdraw funds from an EcoWallet.
     // This should only be to the owner of the NFT and shouldn't have any charges
-    function withdraw(uint256 tokenId, uint256 amount) public payable {
-        require( _exists(tokenId) );
+    function withdraw(bytes32 tokenIdNameHash, uint256 amount) public payable {
+        require(_exists(tokenId));
         require(
-            _isApprovedOrOwner(msg.sender, tokenId),
+            _isApprovedOrOwner(msg.sender, tokenIdNameHash),
             "ERC721: You are not approved or the owner."
         );
         require(
-            tokenIdToBalance[tokenId] >= msg.value,
+            tokenIdToBalance[tokenIdNameHash] >= msg.value,
             "EcoWallet: Insufficient funds"
         );
-        payable(msg.sender).transfer( amount );
+        payable(msg.sender).transfer(amount);
         tokenIdToBalance[tokenId] -= amount;
     }
 
     // pays an account with EcoWallet
     function pay(uint256 tokenId, address payable recipient) public payable {
-        require( _exists(tokenId) );
+        require(_exists(tokenId));
         require(
             _isApprovedOrOwner(msg.sender, tokenId),
             "ERC721: You are not approved or the owner."
@@ -164,7 +176,7 @@ contract EcoWallet is ERC721, Ownable {
         uint8 tier = getTier(tokenId);
         uint256 community_share = tierToCommunityFundShare[tier];
         uint256 community_amount = (msg.value * community_share) / 100;
-        uint256 recipient_amount = msg.value - community_amount; 
+        uint256 recipient_amount = msg.value - community_amount;
 
         recipient.transfer(recipient_amount);
 
@@ -172,17 +184,39 @@ contract EcoWallet is ERC721, Ownable {
         uint256 charity_amount = community_amount / charities.length;
         for (uint256 i = 0; i < charities.length; i++) {
             // TODO: Casting to payable below but this could be done during array initilization
-            // TODO: remainder isn't used, but this is probably neglible 
+            // TODO: remainder isn't used, but this is probably neglible
             payable(charities[i]).transfer(charity_amount);
         }
     }
 
-    function inWhitelist(address _add) public view returns (bool) {
-        return whitelist[_add];
+    function inWhitelist(address add) public view returns (bool) {
+        return whitelist[add];
     }
 
-    // TODO: mechanism for community to decide whitelist 
-    function addToWhitelist(address _add) public onlyOwner {
-        whitelist[_add] = true; 
+    function tokenIdExists(bytes32 tokenIdNameHash) public view returns (bool) {
+        return tokenIds[tokenIdNameHash];
     }
+
+    // TODO: mechanism for community to decide whitelist
+    function addToWhitelist(address add) public onlyOwner {
+        whitelist[add] = true;
+    }
+
+    /*
+    function createWallet(string tokenId) public {
+        // check if token id ends in .eco
+        bytes32 endTokenID = bytes(text)[i + begin - 1];
+        require(endTokenID != ".eco", "ERC721: Token ID must end in '.eco'.")
+        // check if token id already exists
+        require(!_exists(tokenIdNameHash), "ERC721: Token ID already exists.");
+
+        _safeMint(msg.sender, tokenIdNameHash);
+        tokenIdToBalance[tokenIdNameHash] = 0;
+    }
+    function computeNamehash(string _name) public pure returns (bytes32 namehash) {
+        namehash = 0x0000000000000000000000000000000000000000000000000000000000000000;
+        namehash = keccak256( abi.encodePacked(namehash, keccak256(abi.encodePacked('eth'))) );
+        namehash = keccak256( abi.encodePacked(namehash, keccak256(abi.encodePacked(_name))));
+    }
+    */
 }
