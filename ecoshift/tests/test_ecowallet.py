@@ -2,6 +2,8 @@ import pytest
 from brownie import EcoWallet, network, config, accounts
 from scripts.utils import get_account, get_contract
 from scripts.utils import LOCAL_BLOCKCHAIN_ENVIRONMENTS as LOCAL_CHAINS
+from random import randint
+import web3
 
 # NOTE: charity address start with 0 balance
 @pytest.fixture
@@ -30,35 +32,44 @@ def deploy_ecowallet():
             publish_source=False)
     return ecowallet
 
+# wallet with a random name
+@pytest.fixture
+def test_walletID():
+    wallet_name = "testwallet" + str(randint(0,2**12))
+    #name hash tokenID
+    return int.from_bytes(
+        web3.Web3.keccak(text=wallet_name), 
+        byteorder='big') 
 
-def test_ecowallet_basic(deploy_ecowallet):
+
+def test_ecowallet_basic(deploy_ecowallet, test_walletID):
     if network.show_active() not in LOCAL_CHAINS:
         pytest.skip()
     acct = get_account()
     ecowallet = deploy_ecowallet 
+    tokenId = test_walletID
 
     # mint and fund a wallet
-    ecowallet.createWallet({"from": acct})
+    ecowallet.createWallet(tokenId, {"from": acct})
     assert ecowallet.tokenCounter() == 1
 
-    tokenId = 0
     amt = 10000000000
     ecowallet.fund(tokenId, {"from": acct, "value": amt})
     balance = EcoWallet[0].getBalance(tokenId, {"from": acct})
     assert balance == amt
 
-def test_ecowallet_split(deploy_ecowallet, get_charities):
+def test_ecowallet_split(deploy_ecowallet, test_walletID, get_charities):
     if network.show_active() not in LOCAL_CHAINS:
         pytest.skip()
     acct = get_account()
     recipient = get_account(index=1)
 
-    tokenId = 0
+    tokenId = test_walletID
     amt = 10000000000
     default_balance = recipient.balance()
 
     ecowallet = deploy_ecowallet
-    ecowallet.createWallet({"from": acct})
+    ecowallet.createWallet(tokenId, {"from": acct})
     ecowallet.fund(tokenId, {"from": acct, "value": amt})
     ecowallet.pay(tokenId, recipient, {"from": acct, "value": amt })
 
@@ -71,9 +82,9 @@ def test_ecowallet_split(deploy_ecowallet, get_charities):
         assert charity.balance() == community_share//len(charities) 
 
 
-def test_ecowallet_whitelist(deploy_ecowallet, get_charities):
+def test_ecowallet_whitelist(deploy_ecowallet, test_walletID, get_charities):
     acct = get_account()
-    tokenId = 0
+    tokenId = test_walletID
     amt = 700000000000
 
     charities = get_charities
@@ -81,7 +92,7 @@ def test_ecowallet_whitelist(deploy_ecowallet, get_charities):
     default_balance = charity.balance()
 
     ecowallet = deploy_ecowallet
-    ecowallet.createWallet({"from": acct})
+    ecowallet.createWallet(tokenId, {"from": acct})
     ecowallet.fund(tokenId, {"from": acct, "value": amt})
 
     # charity is whitelisted by default
