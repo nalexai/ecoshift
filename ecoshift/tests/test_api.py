@@ -40,7 +40,7 @@ def test_api_request_local(deploy_api_contract, chainlink_fee, get_data):
     #print(api_contract.resp_str())
     #assert str_response == "testing 123"
 
-    assert api_contract.volume() == 0x2c7e2252061A1DBEa274501Dc4c901E3fF80ef8B 
+    assert api_contract.gotAddress() == "0x2c7e2252061A1DBEa274501Dc4c901E3fF80ef8B"
 
 def test_send_api_request_testnet(deploy_api_contract, chainlink_fee):
     if network.show_active() not in ["kovan", "rinkeby", "mainnet"]:
@@ -53,8 +53,8 @@ def test_send_api_request_testnet(deploy_api_contract, chainlink_fee):
     assert transaction is not None
     transaction.wait(2)
     time.sleep(35)
-    assert isinstance(api_contract.volume(), int)
-    assert api_contract.volume() > 0
+    assert isinstance(api_contract.gotAddress(), int)
+    assert api_contract.gotAddress() > 0
 
 @pytest.fixture
 def get_job_id():

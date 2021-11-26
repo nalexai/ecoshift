@@ -4,6 +4,7 @@ from scripts.utils import get_account, get_contract
 from scripts.utils import LOCAL_BLOCKCHAIN_ENVIRONMENTS as LOCAL_CHAINS
 from random import randint
 import web3
+from ens.main import ENS as ns
 
 # NOTE: charity address start with 0 balance
 @pytest.fixture
@@ -35,10 +36,10 @@ def deploy_ecowallet():
 # wallet with a random name
 @pytest.fixture
 def test_walletID():
-    wallet_name = "testwallet" + str(randint(0,2**12))
+    wallet_name = "testwallet" + str(randint(0,2**12)) + ".eco"
     #name hash tokenID
     return int.from_bytes(
-        web3.Web3.keccak(text=wallet_name), 
+        ns.namehash(wallet_name),
         byteorder='big') 
 
 
