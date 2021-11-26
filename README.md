@@ -1,10 +1,10 @@
 # Ecoshift Wallet
+![ecowallets](https://user-images.githubusercontent.com/48187500/143511469-b21b5f82-b739-44e1-ad56-ce07932d5d2d.png)
 
 Ecoshift Crypto Wallets (**Ecowallets** for short) are wallets that have ethical rules built in.   
 
 Ecowallets incentivize users to adhere to _community-defined values_ like environmentalism, while offsetting the negative externalities incurred by violating those values.  
 
-![image](https://user-images.githubusercontent.com/48187500/143511469-b21b5f82-b739-44e1-ad56-ce07932d5d2d.png)
 
 ## How It Works
 
@@ -29,8 +29,8 @@ $ brownie run scripts/deploy.py
 Ecowallets are identified by a human-readable name like `mywallet.eco`. Similar to the Ethereum Name Service, the numeric ID of the wallet is obtained from its [namehash](https://docs.ens.domains/contract-api-reference/name-processing). 
 ```python
 # the tokenID for "mywallet.eco"
-import ens.auto as ns
-tokenID = ns.namehash("mywallet.eco")
+from ens.main import ENS
+tokenID = ENS.namehash("mywallet.eco")
 tokenID = int.from_bytes(tokenID, byteorder="big")
 
 # create the wallet
