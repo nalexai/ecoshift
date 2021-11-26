@@ -12,7 +12,7 @@ An ecowallet is an [NFT](https://ethereum.org/en/nft/) with a unique `.eco` doma
 
 Each ecowallet has a tier (1-5) that updates based on the user's contribution to the community. The Ecowallet smart contract tracks each wallet's contribution by maintaining a community-governed whitelist of addresses that align with the community's values. For transactions that don't align with community values, a fixed percentage is redistributed to a set of charities or non-profit organizations.  
 
-Ecowallets also uses [Chainlink](https://chain.link/) oracles to update the community whitelist according to external data.  
+Ecowallets also use [Chainlink](https://chain.link/) oracles to update the community whitelist according to external data.  
 
 ## Usage
 
