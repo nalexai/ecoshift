@@ -2,51 +2,51 @@ pragma solidity >=0.8.7;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "./APIConsumer.sol";
 
 /**
- * EcoWallet determines how funds are spent across a community
+ * @title Factory contract for EcoWallet NFTs
+ * Wallets enforce community values by incentivizing whitelisted transactions. 
+ * For non-whitelisted transactions, a fixed percentage is distributed to charities. 
+ *
+ * @dev tokenIds are the ENS namehash of the human-readable wallet name, e.g. mywallet.eco
+ * @dev makes Chainlink API call to update the whitelist (see APIConsumer.sol)
  */
-
-contract EcoWallet is ERC721, Ownable {
-    uint256 public tokenCounter; // Keeps track of the number of tokens (NFTs) that have been minted
-
-    // TODO: Get charities from https://bafkreia6cfsedzwyk2aclxzn47zssiexwfqjaz3fq7maivizp7xmlmdonm.ipfs.dweb.link/
-    // TODO: make tokenId the hash of a human readable name, similar to ENS
-    // TODO: separate community fund contract that determines splits between each charity which is based on community vote
-    // TODO: ability to create a contract and fund it and give ownership to another person
-
-    address[] public charities; // charities that will be paid if money isn't sent to a whitelist address
-
-    // TODO: Make a token class with holds the address, balance, and 'goodness' value
+contract EcoWallet is APIConsumer, ERC721, Ownable {
+    uint256 public tokenCounter; // Number of tokens (NFTs) that have been minted
+    address[] public charities; 
 
     mapping(uint8 => string) public tierToWalletURI;
     mapping(uint8 => uint8) public tierToCommunityFundShare;
     mapping(uint256 => uint256) private tokenIdToBalance;
     mapping(uint256 => uint256) private tokenIdToCommunityValue;
-    mapping(address => bool) public whitelist; //mapping of whitelist addresses, lists arent good because large lists use lots of gas to run through
+    mapping(address => bool) public whitelist; 
 
+    /**
+      @dev see the APIConsumer contract for Chainlink params
+    */
     constructor(
         address _oracle,
         bytes32 _jobId,
         uint256 _fee,
         address _link
-    ) ERC721("EcoWallet", "ECO") {
+    ) 
+    ERC721("EcoWallet", "ECO") 
+    APIConsumer(_oracle, _jobId, _fee, _link)
+    {
         tokenCounter = 0;
-        // set tier URIs
         tierToWalletURI[1] = "https://ipfs.io/ipfs/bafkreiaxj7ah6nxnsx7wt5nweg4qrca36evopbaxaxbtcpugvle2git27q"; 
         tierToWalletURI[2] = "https://ipfs.io/ipfs/bafkreigfk7xbomlnnfq4zssgnjsjwq6xsh42elmxmid7hjlhq42cjcy7fu"; 
         tierToWalletURI[3] = "https://ipfs.io/ipfs/bafkreifgfttc6xkirlm7nnqg55ffvbq7uuuw5yb6s4mfruyakvzu46dx2y"; 
         tierToWalletURI[4] = "https://ipfs.io/ipfs/bafkreibyqbka4t4hhpy7a4ogqfcuxzjlutk4uxsyl3fiyob6d6d63badlm"; 
         tierToWalletURI[5] = "https://ipfs.io/ipfs/bafkreifnget24ood6n5lf4if5u7jvwiv2bj5kp545khrookv7eec7d7pbm"; 
 
-        // set tier community amounts
-        tierToCommunityFundShare[1] = 5; // 5%
-        tierToCommunityFundShare[2] = 4; // 4%
-        tierToCommunityFundShare[3] = 3; // 3%
-        tierToCommunityFundShare[4] = 2; // 2%
-        tierToCommunityFundShare[5] = 1; // 1%
+        // set community shares for each tier (in percentages)
+        tierToCommunityFundShare[1] = 5; 
+        tierToCommunityFundShare[2] = 4; 
+        tierToCommunityFundShare[3] = 3; 
+        tierToCommunityFundShare[4] = 2; 
+        tierToCommunityFundShare[5] = 1; 
 
         charities = [
             0x2c7e2252061A1DBEa274501Dc4c901E3fF80ef8B,
@@ -61,6 +61,20 @@ contract EcoWallet is ERC721, Ownable {
         }
     }
 
+    /**
+      Mints a new wallet
+      @dev tokenId is the ENS namehash of the human-readable wallet name 
+    */
+    function createWallet(uint256 tokenId) public {
+        _safeMint(msg.sender, tokenId);
+        tokenIdToBalance[tokenId] = 0;
+        tokenCounter = tokenCounter + 1;
+    }
+
+    /** 
+      @dev return ERC721 tokenURI for the wallet. 
+      @dev dynamically updates based on wallet's tier
+    */
     function tokenURI(uint256 tokenId)
         public
         view
@@ -75,12 +89,10 @@ contract EcoWallet is ERC721, Ownable {
         return tierToWalletURI[getTier(tokenId)];
     }
 
-    // determines tier of ecowallet which determines their nft image and
-    // charge costs
+    /// Get tier of wallet, which determines NFT image and community share 
     function getTier(uint256 tokenId) public view returns (uint8) {
         require(_exists(tokenId), "EcoWallet: tier query for nonexistent token");
 
-        // determine the tiers
         uint8 tier;
         if (tokenIdToCommunityValue[tokenId] < 1) {
             tier = 1;
@@ -96,19 +108,17 @@ contract EcoWallet is ERC721, Ownable {
         return tier;
     }
 
-    function createWallet() public {
-        _safeMint(msg.sender, tokenCounter);
-        tokenIdToBalance[tokenCounter] = 0;
-        tokenCounter = tokenCounter + 1;
-    }
 
-    // fund an EcoWallet
+    ///Pay a wallet
     function fund(uint256 tokenId) public payable {
         require( _exists(tokenId) );
         tokenIdToBalance[tokenId] += msg.value;
     }
 
-    // getter for wallet balance. Only for owner or approved 
+    /** 
+      Getter for wallet balance 
+      @dev Only callable for owner or approved
+    */
     function getBalance(uint256 tokenId) public view returns (uint256) {
         require( _exists(tokenId) );
         require(
@@ -118,9 +128,7 @@ contract EcoWallet is ERC721, Ownable {
         return tokenIdToBalance[tokenId]; 
     }
 
-
-    // Withdraw funds from an EcoWallet. 
-    // This should only be to the owner of the NFT and shouldn't have any charges
+    ///Withdraw funds from a wallet. 
     function withdraw(uint256 tokenId, uint256 amount) public payable {
         require( _exists(tokenId) );
         require(
@@ -135,7 +143,10 @@ contract EcoWallet is ERC721, Ownable {
         tokenIdToBalance[tokenId] -= amount;
     }
 
-    // pays an account with EcoWallet
+    /**
+      Pays an external account with EcoWallet
+      @dev only callable for owner or approved
+    */
     function pay(uint256 tokenId, address payable recipient) public payable {
         require( _exists(tokenId) );
         require(
@@ -155,7 +166,7 @@ contract EcoWallet is ERC721, Ownable {
             return;
         }
 
-        // as not sending to a whitelist address or to another ecowallet then take away from goodness
+        // not sending to a whitelisted address, so decrease community value 
         if (tokenIdToCommunityValue[tokenId] > 0) {
             tokenIdToCommunityValue[tokenId] -= 1;
         }
@@ -171,18 +182,29 @@ contract EcoWallet is ERC721, Ownable {
         // transfer money to charities
         uint256 charity_amount = community_amount / charities.length;
         for (uint256 i = 0; i < charities.length; i++) {
-            // TODO: Casting to payable below but this could be done during array initilization
-            // TODO: remainder isn't used, but this is probably neglible 
             payable(charities[i]).transfer(charity_amount);
         }
     }
 
-    function inWhitelist(address _add) public view returns (bool) {
-        return whitelist[_add];
+    /// Check if address is in the whitelist
+    function inWhitelist(address _addr) public view returns (bool) {
+        return whitelist[_addr];
     }
 
-    // TODO: mechanism for community to decide whitelist 
-    function addToWhitelist(address _add) public onlyOwner {
-        whitelist[_add] = true; 
+    /**
+       Add an address to the whitelist
+       @dev this is for testing purposes; whitelist should community governed 
+    */
+    function addToWhitelist(address _addr) public onlyOwner {
+        require(_addr != address(0));
+        whitelist[_addr] = true; 
+    }
+
+    /**
+      Add an address recieved from Chainlink API call
+      @dev chainlink request must be already fulfilled (see APIConsumer.sol)
+    */
+    function addToWhitelistFromAPI() public onlyOwner {
+        addToWhitelist(gotAddress);
     }
 }

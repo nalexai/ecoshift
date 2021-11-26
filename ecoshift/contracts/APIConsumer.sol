@@ -5,18 +5,14 @@ pragma solidity >=0.8.7;
 import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 
 /**
- * Request testnet LINK and ETH here: https://faucets.chain.link/
- * Find information on LINK Token Contracts and get the latest ETH and LINK faucets here: https://docs.chain.link/docs/link-token-contracts/
+    @dev APIConsumer makes a simple Chainlink request to get addresses 
+    @dev job type is `GET uint256`, which is cast to an address
  */
 
-/**
- * THIS IS AN EXAMPLE CONTRACT WHICH USES HARDCODED VALUES FOR CLARITY.
- * PLEASE DO NOT USE THIS CODE IN PRODUCTION.
- */
 contract APIConsumer is ChainlinkClient {
     using Chainlink for Chainlink.Request;
   
-    uint256 public volume;
+    address public gotAddress; // store the address recieved
     bytes32 public resp;
     string public resp_str;
     address private oracle;
@@ -24,12 +20,11 @@ contract APIConsumer is ChainlinkClient {
     uint256 private fee;
     
     /**
-     * Network: Kovan
-     * Oracle: 0xc57B33452b4F7BB189bB5AfaE9cc4aBa1f7a4FD8 (Chainlink Devrel   
-     * Node)
-     * Job ID: d5270d1c311941d0b08bead21fea7747
-     * Fee: 0.1 LINK
-     */
+      @param _oracle The chainlink oracle address
+      @param _jobId The id for `GET uint256` job
+      @param _fee The chainlink fee
+      @param _link The address of LINK token contract
+    */
     constructor(address _oracle, bytes32 _jobId, uint256 _fee, address _link) {
         if (_link == address(0)) {
             setPublicChainlinkToken();
@@ -39,31 +34,17 @@ contract APIConsumer is ChainlinkClient {
         oracle = _oracle;
         jobId = _jobId;
         fee = _fee;
-
-        //setPublicChainlinkToken();
-        //oracle = 0xc57B33452b4F7BB189bB5AfaE9cc4aBa1f7a4FD8;
-        //jobId = "d5270d1c311941d0b08bead21fea7747"; 
-        //fee = 0.1 * 10 ** 18;
     }
     
     /**
-     * Create a Chainlink request to retrieve API response, find the target
-     * data, then multiply by 1000000000000000000 (to remove decimal places from data).
+     * Create a Chainlink request to retrieve uint256 API response
+     * @dev currently requests from a static address placeholder; in reality it would update
      */
     function requestData() public returns (bytes32 requestId) 
     {
         Chainlink.Request memory request = buildChainlinkRequest(jobId, address(this), this.fulfill.selector);
         
-        // Set the URL to perform the GET request on
-        request.add("get", "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=ETH&tsyms=USD");
-
-        request.add("path", "RAW.ETH.USD.VOLUME42HOUR");
-        
-        // Multiply the result by 100000000000000000 to remove decimals
-        int timesAmount = 10**18;
-        request.addInt("times", timesAmount);
-        
-        // Sends the request
+        request.add("get", "https://ipfs.io/ipfs/bafkreiacp73dnke22k72kpymqenlz5fehjbjpxanquceomtwowla26wsbu");
         return sendChainlinkRequestTo(oracle, request, fee);
     }
     
@@ -71,38 +52,14 @@ contract APIConsumer is ChainlinkClient {
         return fee;
     }
     
-    
     /**
-     * Receive the response in the form of uint256
+     * Recieve uint256 from chainlink oracle
+     * @dev stores response in `gotAddress` after casting
      */ 
-    function fulfill(bytes32 _requestId, uint256 _volume) public recordChainlinkFulfillment(_requestId)
+    function fulfill(bytes32 _requestId, uint256 _address) public recordChainlinkFulfillment(_requestId)
     {
-        volume = _volume;
+        gotAddress = address(uint160(_address));
     }
 
-    
-    /**
-     * Receive the response in the form of string
-     * (max 32 bytes)
-     */ 
-    //function fulfill(bytes32 _requestId, bytes32 _resp) public recordChainlinkFulfillment(_requestId)
-    //{
-        //resp = _resp;
-        //string memory _resp_str = string(abi.encodePacked(resp));
-        //resp_str = _resp_str;
-    //}
-
-
     // function withdrawLink() external {} - Implement a withdraw function to avoid locking your LINK in the contract
-
-    // function stringToBytes32(string memory source) public pure returns (bytes32 result) {
-    //     bytes memory tempEmptyStringTest = bytes(source);
-    //     if (tempEmptyStringTest.length == 0) {
-    //         return 0x0;
-    //     }
-
-    //     assembly {
-    //         result := mload(add(source, 32))
-    //     }
-    // }
 }
