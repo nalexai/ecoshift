@@ -12,9 +12,11 @@ An ecowallet is an [NFT](https://ethereum.org/en/nft/) with a unique `.eco` doma
 
 Each ecowallet has a tier (1-5) that updates based on the user's contribution to the community. The Ecowallet smart contract tracks each wallet's contribution by maintaining a community-governed whitelist of addresses that align with the community's values. For transactions that don't align with community values, a fixed percentage is redistributed to a set of charities or non-profit organizations.  
 
-Ecowallets also uses [Chainlink](https://chain.link/) oracles to update the community whitelist according to external data.  
+Ecowallets also uses [Chainlink](https://chain.link/) oracles to update the community whitelist according to external data.
 
-The user interface uses streamlit and it is only uses for demonstration purposes as it is not connected to the smart contract.
+The smart contract was also deployed to the Polygon Mumbai Testnet and can be found at the address0 `xDF2D882C2130bb1421eE419F75eb051e7057888e`. 
+
+The user interface can be found in `/app` and is built using the `streamlit`c python library. It is only used for demonstration purposes as it is not connected to the smart contract.
 
 ## Usage
 
