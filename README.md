@@ -14,6 +14,8 @@ Each ecowallet has a tier (1-5) that updates based on the user's contribution to
 
 Ecowallets also uses [Chainlink](https://chain.link/) oracles to update the community whitelist according to external data.  
 
+The user interface uses streamlit and it is only uses for demonstration purposes as it is not connected to the smart contract.
+
 ## Usage
 
 This project uses [brownie](https://github.com/eth-brownie/brownie) for testing and deploying, but the main contract [`EcoWallet.sol`](https://github.com/nalexai/ecoshift/blob/main/ecoshift/contracts/EcoWallet.sol) can be re-used on its own. 
