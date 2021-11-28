@@ -16,7 +16,7 @@ Ecowallets also uses [Chainlink](https://chain.link/) oracles to update the comm
 
 The smart contract was also deployed to the Polygon Mumbai Testnet and can be found at the address0 `xDF2D882C2130bb1421eE419F75eb051e7057888e`. 
 
-The user interface can be found in `/app` and is built using the `streamlit`c python library. It is only used for demonstration purposes as it is not connected to the smart contract.
+The user interface can be found in `/app` folder and is built using the `streamlit`c python library. It is only used for demonstration purposes as it is not connected to the smart contract.
 
 ## Usage
 
