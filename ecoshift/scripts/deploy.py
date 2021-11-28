@@ -46,5 +46,4 @@ def deploy_ecowallet():
 
 
 def main():
-    deploy_api_consumer()
-    #deploy_ecowallet()
+    deploy_ecowallet()

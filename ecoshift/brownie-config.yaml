@@ -47,8 +47,13 @@ networks:
     oracle: '0x7AFe1118Ea78C1eae84ca8feE5C65Bc76CcF879e'
     jobId: '6d1bfe27e7034b1d87b5270556b17277'
     eth_usd_price_feed: '0x8A753747A1Fa494EC906cE90E9f37563A8AF630e'
-  mumbai:
+  polygon-test:
+    gas_limit: max
     eth_usd_price_feed: '0x0715A7794a1dc8e42615F059dD6e406A6594651A'
+    link_token: '0x326C977E6efc84E512bB9C30f76E30c160eD06FB'
+    jobId: '2bb15c3f9cfc4336b95012872ff05092'
+    fee: 100000000000000000
+    oracle: '0x0bDDCD124709aCBf9BB3F824EbC61C87019888bb'
   binance:
     # link_token: ??
     eth_usd_price_feed: '0x9ef1B8c0E4F7dc8bF5719Ea496883DC6401d5b2e'
